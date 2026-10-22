@@ -35,10 +35,10 @@ language: Thai
 
 | เกณฑ์ | Run a | Run b |
 |---|---|---|
-| ใช้ตัวเลขจาก scenario หรือไม่ (latency, ช่วงพีก, ข้อจำกัดของ MailFast) | | |
-| ทางเลือกที่พิจารณา (ระบุ) | | |
-| จัดการแต้มสะสมแบบ "ครั้งเดียวเท่านั้น" และ rate limit ของ MailFast หรือไม่ อย่างไร | | |
-| มีสิ่งที่แต่งขึ้นเองหรือไม่ (ตัวเลข เครื่องมือ หรือข้อเท็จจริงที่ไม่มีใน scenario) | | |
+| ใช้ตัวเลขจาก scenario หรือไม่ (latency, ช่วงพีก, ข้อจำกัดของ MailFast) | ไม่ใช้ | ใช้ |
+| ทางเลือกที่พิจารณา (ระบุ) | `A. Synchronous orchestration`<br>`B. Async pub/sub ผ่าน message broker` (**เลือก**)<br>`C. Post-order orchestrator service` | `1. Sync gRPC fan-out`<br>`2. In-process async`<br>`3. RabbitMQ events` (**เลือก**)<br>`4. Kafka events` |
+| จัดการแต้มสะสมแบบ "ครั้งเดียวเท่านั้น" และ rate limit ของ MailFast หรือไม่ อย่างไร | **แต้ม:** idempotent consumer ตาม `order_id` รวมกับ idempotency test<br>**rate limit:** พูดถึงแบบกว้างๆ ถามใน Open questions | **แต้ม:** unique constraint `order_id` ใน transaction เดียวกับการเพิ่มแต้ม + ทดสอบ < 60 s<br>**rate limit:** คุม ≤ 50/s ด้วย consumer/prefetch + token bucket, queue รับส่วนเกิน 150/s ช่วงพีก, retry/DLQ |
+| มีสิ่งที่แต่งขึ้นเองหรือไม่ (ตัวเลข เครื่องมือ หรือข้อเท็จจริงที่ไม่มีใน scenario) | ไม่มี เรื่องที่ไม่รู้อยู่ใน Open questions | ตัวเลขมาจาก scenario |
 
 ## รับผิดชอบ ADR ฉบับสุดท้ายของตัวเอง
 
@@ -51,6 +51,4 @@ language: Thai
 
 | # | สิ่งที่เปลี่ยนจากร่างของ AI | เหตุผล |
 |---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
+| 1 | เรื่อง broker ล่มตอน publish เปลี่ยนจาก ยอมให้ event หาย เป็น ใช้ outbox ใน DB รับไว้ก่อน แล้วค่อยมาอ่านส่งอีกครั้ง (ADR-0002 บรรทัด 64, 111) | ทำให้ระบบได้รับข้อมูลครบถ้วน|

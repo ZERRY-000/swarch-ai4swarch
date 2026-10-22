@@ -38,15 +38,19 @@ evidence: system/online-boutique/protos/demo.proto, system/online-boutique/kuber
 
 | ผู้เรียก → ผู้ถูกเรียก | หลักฐานที่ AI อ้าง | ยืนยันแล้วหรือไม่ ✅ / ❌ / ❓ | สิ่งที่นิสิตพบ |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+|checkoutservice → productcatalogservice |kubernetes-manifests/checkoutservice.yaml · PRODUCT_CATALOG_SERVICE_ADDR=productcatalogservice:3550 |✅ | 	cl := pb.NewProductCatalogServiceClient(cs.productCatalogSvcConn) in src/checkoutservice/main.go:341 มีการสร้าง client และ call ใน main.go:344 GetProduct |
+|checkoutservice → shippingservice |kubernetes-manifests/checkoutservice.yaml · SHIPPING_SERVICE_ADDR=shippingservice:50051 |✅ |src/checkoutservice/main.go:314–315 เรียก GetQuote และ main.go:387 เรียก ShipOrder |
+|checkoutservice → paymentservice |kubernetes-manifests/checkoutservice.yaml · PAYMENT_SERVICE_ADDR=paymentservice:50051 |✅ |src/checkoutservice/main.go:370 เรียก Charge |
+|checkoutservice → emailservice |kubernetes-manifests/checkoutservice.yaml · EMAIL_SERVICE_ADDR=emailservice:5000 |✅ |src/checkoutservice/main.go:380 เรียก SendOrderConfirmation |
+|checkoutservice → currencyservice |kubernetes-manifests/checkoutservice.yaml · CURRENCY_SERVICE_ADDR=currencyservice:7000 |✅ |src/checkoutservice/main.go:360 เรียก Convert |
+|checkoutservice → cartservice |kubernetes-manifests/checkoutservice.yaml · CART_SERVICE_ADDR=cartservice:7070 |✅ |src/checkoutservice/main.go:325 เรียก GetCart และ main.go:333 เรียก EmptyCart |
 | | | | |
 
-- **สิ่งที่ผิดหรือขาดหายไป** ใน Run B (dependency ที่ไม่มีจริง, dependency ที่ขาดไป, container ที่น่าสงสัย): …
+- **สิ่งที่ผิดหรือขาดหายไป** ใน Run B (dependency ที่ไม่มีจริง, dependency ที่ขาดไป, container ที่น่าสงสัย): # container loadgenerator - loadgenerator.yaml:24 # During development, the loadgenerator module inside skaffold.yaml will be used. ยังไม่ใช้แต่มีใน diagram
 
 ## สะท้อนคิด (ข้อละ 2–3 ประโยค)
 
 1. เปรียบเทียบ A กับ B: agent **ไม่สามารถ**รู้อะไรได้จากไฟล์ `.proto` เพียงไฟล์เดียว และเพราะเหตุใด
+- dependency table เพราะ proto แค่บอกว่ามีอะไรบ้างแต่ไม่ได้เห็นว่าถูกเรียกจริงไหม
 2. ข้อผิดพลาด**ข้อใดข้อหนึ่ง**ที่จะทำให้สมาชิกใหม่ของทีมเข้าใจผิดมากที่สุด หากเผยแพร่แผนภาพนี้โดยไม่ตรวจสอบ
+- คิดว่า loadgenerator มีอยู่และใช้อยู่
